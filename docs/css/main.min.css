@@ -1,2 +1,2 @@
-*,:after,:before{box-sizing:border-box}html{color:#333}body,li,ul{padding:0;margin:0}li,ul{list-style:none}button{outline:none;cursor:pointer;border:none}
+*,:after,:before{box-sizing:border-box}html{color:#333}body,li,ul{padding:0;margin:0}li,ul{list-style:none}button{outline:none;cursor:pointer;border:none}body{overflow:hidden;background:linear-gradient(to bottom right,#335,#533)}
 /*# sourceMappingURL=main.min.css.map */

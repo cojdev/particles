@@ -20,4 +20,8 @@ button {
   cursor: pointer;
   border: none; }
 
+body {
+  overflow: hidden;
+  background: linear-gradient(to bottom right, #335, #533); }
+
 /*# sourceMappingURL=main.css.map */
