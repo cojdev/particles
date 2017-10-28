@@ -25,28 +25,61 @@ function init () {
 	window.addEventListener('resize', resizeCanvas, false);
 
 	//Particle Network
-	var test = new network({
+	var set1a = new network({
 		size: 150,
-		maxDist: 200,
-		mouse: true,
-		colour: "#ff0000"
+		mouse: true
 	});
 
-	function animate (canvas_id) {
-		//Clear the canvas
-		var cvs = document.getElementById(canvas_id);
-		cvs.getContext("2d").clearRect(0, 0, cvs.width, cvs.height);
-		test.render();
-		requestAnimationFrame(function () {
-			animate(canvas_id);
-		});
-	}
+	var set1b = new network({
+		size: 150,
+		mouse: true
+	});
 
-	animate("canvas");
+	//Starfield
+	var set2 = new starfield({
+		size: 100
+	});
+
+	function animate () {
+		//Clear the canvas
+		var cvs = document.getElementById("canvas");
+		cvs.getContext("2d").clearRect(0, 0, cvs.width, cvs.height);
+		set1a.render();
+		set1b.render();
+		requestAnimationFrame(animate);
+	}
+	animate();
+	//set2.render();
 }
 
-function scene () {
+function starfield (args) {
+	
+	args = args || {};
+	
+	var self = this;
 
+	self.size = args.size || 100;
+	self.maxDist = args.maxDist || 150;
+	self.colour = args.colour || "#ffffff";
+
+	self.particles = [];
+	for (var i = 0; i < self.size; i++) {
+		self.particles[i] = new particle(
+			Math.random() * canvas.width,
+			Math.random() * canvas.height,
+			Math.random()
+		);
+	}
+
+	self.render = function () {
+		for (var i = 0; i < self.size; i++) {
+			self.particles[i].x = Math.random() * canvas.width;
+			self.particles[i].y = Math.random() * canvas.height;
+			self.particles[i].render(self.colour);
+		}
+	};
+
+	addEventListener("resize", self.render);
 }
 
 function network (args) {
@@ -55,8 +88,8 @@ function network (args) {
 
 	var self = this;
 
-	self.size = args.size || 75;
-	self.maxDist = args.maxDist || 200;
+	self.size = args.size || 100;
+	self.maxDist = args.maxDist || 150;
 	self.colour = args.colour || "#000000";
 
 	self.particles = [];
@@ -87,7 +120,7 @@ function network (args) {
 				if (temp < dist) {
 					var midx = (obj.x + self.particles[i].x) / 2;
 					var midy = (obj.y + self.particles[i].y) / 2;
-					ctx.strokeStyle = "rgba("+Math.floor(255*(midx/canvas.width))+",50,"+Math.floor(255*((canvas.width - midx)/canvas.width))+"," + Math.pow((dist-temp)/dist,5) + ")";
+					ctx.strokeStyle = "rgba("+Math.floor(255*(midx/canvas.width))+",50,"+Math.floor(255*((canvas.width - midx)/canvas.width))+"," + Math.pow((dist-temp)/dist,3) + ")";
 					//Start drawing
 					ctx.beginPath();
 					ctx.moveTo(obj.x, obj.y);
@@ -100,25 +133,25 @@ function network (args) {
 	};
 
 	//Update particle positions
-	self.update = function (obj) {
+	self.update = function (obj, boundary) {
 		//Velocity
 		obj.x += obj.vx;
 		obj.y += obj.vy;
 		//Boundary overflow
-		if (obj.x > canvas.width+(self.maxDist/2)) {
-		obj.x = -(self.maxDist/2);
+		if (obj.x > canvas.width+(boundary/2)) {
+		obj.x = -(boundary/2);
 		}
-		else if (obj.xpos < -(self.maxDist/2)) {
-			obj.x = canvas.width+(self.maxDist/2);
+		else if (obj.xpos < -(boundary/2)) {
+			obj.x = canvas.width+(boundary/2);
 		}
-		if (obj.y > canvas.height+(self.maxDist/2)) {
-			obj.y = -(self.maxDist/2);
+		if (obj.y > canvas.height+(boundary/2)) {
+			obj.y = -(boundary/2);
 		}
-		else if (obj.y < -(self.maxDist/2)) {
-			obj.y = canvas.height+(self.maxDist/2);
+		else if (obj.y < -(boundary/2)) {
+			obj.y = canvas.height+(boundary/2);
 		}	
 	};
-	//
+	//Draw
 	self.render = function () {
 		if (args.mouse === true) {
 			self.collision(mouseParticle, self.maxDist*2);
@@ -127,7 +160,7 @@ function network (args) {
 		//Particle interaction
 		for (var i = 0; i < self.particles.length; i++) {
 			self.collision(self.particles[i], self.maxDist);
-			self.update(self.particles[i]);
+			self.update(self.particles[i], self.maxDist);
 			self.particles[i].render();
 		}
 	}
@@ -147,17 +180,17 @@ function network (args) {
 }
 
 //Particle constructor
-function particle (x,y) {
+function particle (x,y,dia) {
 	var self = this;
 	self.x = x || 1;
 	self.y = y || 1;
 	self.vx = (Math.random()*1)-.5;
 	self.vy = (Math.random()*1)-.5;
-	self.dia = 2 * pixelRatio;
+	self.dia = dia * pixelRatio || 2 * pixelRatio;
 
-	self.render = function () {
+	self.render = function (colour) {
 		ctx.beginPath();
-		ctx.fillStyle = "rgb("+Math.floor(255*(self.x/canvas.width))+",50,"+Math.floor(255*((canvas.width - self.x)/canvas.width))+")";
+		ctx.fillStyle = colour;
 		if(self.dia){
 			ctx.arc(self.x,self.y,self.dia,0,2*Math.PI);
 		}else{

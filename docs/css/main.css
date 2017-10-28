@@ -24,4 +24,25 @@ body {
   overflow: hidden;
   background: linear-gradient(to bottom right, #335, #533); }
 
+.button-left, .button-right {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  line-height: 100%;
+  width: 100px;
+  background: none;
+  border: none;
+  outline: none;
+  color: rgba(0, 0, 0, 0.25);
+  font-size: 4em;
+  transition: ease 300ms; }
+  .button-left:hover, .button-right:hover {
+    background: rgba(0, 0, 0, 0.1); }
+
+.button-left {
+  left: 0; }
+
+.button-right {
+  right: 0; }
+
 /*# sourceMappingURL=main.css.map */
