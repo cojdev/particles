@@ -26,12 +26,13 @@ function init () {
 
 	//Particle Network
 	var set1a = new network({
-		size: 150,
-		mouse: true
+		count: 150,
+		mouse: true,
+		colour: "#fff"
 	});
 
 	var set1b = new network({
-		size: 150,
+		count: 150,
 		mouse: true
 	});
 
@@ -58,9 +59,9 @@ function starfield (args) {
 	
 	var self = this;
 
-	self.size = args.size || 100;
+	self.count = args.count || 100;
 	self.maxDist = args.maxDist || 150;
-	self.colour = args.colour || "#ffffff";
+	self.colour = args.colour || "#fff";
 
 	self.particles = [];
 	for (var i = 0; i < self.size; i++) {
@@ -90,7 +91,7 @@ function network (args) {
 
 	self.size = args.size || 100;
 	self.maxDist = args.maxDist || 150;
-	self.colour = args.colour || "#000000";
+	self.colour = args.colour || "#fff";
 
 	self.particles = [];
 	for (var i = 0; i < self.size; i++) {
@@ -155,13 +156,13 @@ function network (args) {
 	self.render = function () {
 		if (args.mouse === true) {
 			self.collision(mouseParticle, self.maxDist*2);
-			mouseParticle.render();
+			mouseParticle.render(self.colour);
 		}
 		//Particle interaction
 		for (var i = 0; i < self.particles.length; i++) {
 			self.collision(self.particles[i], self.maxDist);
 			self.update(self.particles[i], self.maxDist);
-			self.particles[i].render();
+			self.particles[i].render(self.colour);
 		}
 	}
 
@@ -190,7 +191,7 @@ function particle (x,y,dia) {
 
 	self.render = function (colour) {
 		ctx.beginPath();
-		ctx.fillStyle = colour;
+		ctx.fillStyle = colour || "#0f0";
 		if(self.dia){
 			ctx.arc(self.x,self.y,self.dia,0,2*Math.PI);
 		}else{
