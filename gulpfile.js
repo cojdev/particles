@@ -2,58 +2,76 @@
  * Author: Charles Ojukwu
  */
 
-//--npm install gulp gulp-sass gulp-cssnano gulp-sourcemaps gulp-concat gulp-rename gulp-uglify gulp-newer gulp-filter --save-dev
-
 var gulp = require('gulp'),
 
-    //--General
-    concat = require('gulp-concat'),//Join multiple files 
+    // General
+    concat = require('gulp-concat'),
     rename = require('gulp-rename'),
-    sourcemaps = require('gulp-sourcemaps'),//Show sources in dev tools
+    sourcemaps = require('gulp-sourcemaps'),
     filter = require('gulp-filter'),
+    browserSync = require('browser-sync').create(),
 
-    //--CSS
+    // CSS
     sass = require('gulp-sass'),
     cssnano = require('gulp-cssnano'),
 
-    //--Javascript
+    // Javascript
     uglify = require('gulp-uglify');
 
-//--Parse and minify Sass
+var src = 'src',
+    dest = 'docs';
+
+// Parse and minify Sass
 gulp.task('sass', function() {
-return gulp.src('src/scss/**/main.scss')
+return gulp.src(src + '/scss/**/main.scss')
     .pipe(sourcemaps.init())
     .pipe(sass().on('error', sass.logError))
     .pipe(rename('main.css'))
     .pipe(sourcemaps.write('./'))
-    .pipe(gulp.dest('docs/css'))
+    .pipe(gulp.dest(dest + '/css'))
     .pipe(filter('**/*.css'))
     .pipe(rename('main.min.css'))
     .pipe(cssnano())
     .pipe(sourcemaps.write('./'))
-    .pipe(gulp.dest('docs/css'))
+    .pipe(gulp.dest(dest + '/css'))
+    .pipe(browserSync.reload({stream: true}))
 });
 
-//--Concat and uglify Javascript files
+// Concat and uglify Javascript files
 gulp.task('js', function() {
-return gulp.src(['src/js/**/*.js'])
+return gulp.src([src + '/js/**/*.js'])
     .pipe(sourcemaps.init())
     .pipe(concat('main.js'))
-    .pipe(gulp.dest('docs/js'))
+    .pipe(gulp.dest(dest + 'js'))
     .pipe(rename('main.min.js'))
     .pipe(uglify())
     .pipe(sourcemaps.write('./'))
-    .pipe(gulp.dest('docs/js'))
+    .pipe(gulp.dest(dest + 'js'))
 });
 
-//--Run tasks once
+// BrowserSync
+gulp.task('browser-sync', function() {
+    browserSync.init({
+        proxy: 'localhost',
+        open: 'ui'
+    });
+});
+
+// Watch edits
+gulp.task('watch', function(){
+gulp.watch(src + '/**/*.scss', ['sass']);
+gulp.watch(src + '/js/**/*.js', ['js']);
+});
+
+// Run tasks once
 gulp.task('run', ['sass', 'js']);
 
-//--Watch edits
-gulp.task('watch', function(){
-gulp.watch('src/**/*.scss', ['sass']);
-gulp.watch('src/js/**/*.js', ['js']);
+// Sync Changes
+gulp.task('sync', ['run', 'watch', 'browser-sync'], function() {
+    gulp.watch(dest + '/js/*.js').on('change', browserSync.reload);
+    gulp.watch(dest + '/*.html').on('change', browserSync.reload);
+    gulp.watch(dest + '/css/*.css').on('change', browserSync.reload);
 });
 
-//--Default task
+// Default task
 gulp.task('default', ['run', 'watch']);

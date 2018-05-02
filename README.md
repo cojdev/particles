@@ -1,2 +1,7 @@
-# particles
-JavaScript Particle System with HTML Canvas
+# Particles
+A JavaScript Canvas Particle System.
+
+## Features
+
+* Emitters
+* Fields
