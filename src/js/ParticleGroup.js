@@ -7,14 +7,14 @@ export default class ParticleGroup {
      * @param {CanvasElement} canvas the canvas to be rendered on
      * @param {number} x x position
      * @param {number} y y position
-     * @param {number} life lifespan
+     * @param {number} count max number of particles in group
      */
-    constructor(canvas, x = 0, y = 0, life) {
+    constructor(canvas, x = 0, y = 0, count) {
         this.canvas = canvas;
         this.ctx = this.canvas.getContext('2d');
         this.x = x;
         this.y = y;
-        this.life = life;
+        this.count = count;
         this.mouse = {x: 0, y: 0};
     }
 
@@ -30,6 +30,10 @@ export default class ParticleGroup {
         };
     }
 
+    /**
+     * set mouse values
+     * @param {MouseEvent} e mouse event
+     */
     setMouse(e) {
         const rect = this.canvas.getBoundingClientRect();
         this.mouse = {
@@ -38,6 +42,9 @@ export default class ParticleGroup {
         };
     }
 
+    /**
+     * return the mouse position relative to the canvas
+     */
     getMouse() {
         return {
             x: this.mouse.x,
@@ -45,23 +52,28 @@ export default class ParticleGroup {
         };
     }
 
-    spawn(x, y, amount, dia) {
+    /**
+     * generate a number of particles
+     * @param {number} x x position
+     * @param {number} y y position
+     * @param {number} count number of particles to spawn
+     * @param {number} diameter override particle diameter
+     */
+    spawnParticles(x, y, count = 1, diameter = false) {
         let arr = [];
-        dia = dia || false;
 
-        amount = amount || 1;
-
-        if (amount > 1) {
-            for (let i = 0; i < amount; i++) {
-                if (dia) {
-                    arr.push(new Particle(this.canvas, x, y, dia));
+        if (count > 1) {
+            for (let i = 0; i < count; i++) {
+                if (diameter) {
+                    arr.push(new Particle(this.canvas, x, y, diameter));
                 }
                 else {
                     arr.push(new Particle(this.canvas, x, y));
                 }
             }
-        } else {
-            arr = new Particle(this.canvas, x, y, dia);
+        }
+        else {
+            arr = new Particle(this.canvas, x, y, diameter);
         }
 
         return arr;

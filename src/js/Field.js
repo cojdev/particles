@@ -3,25 +3,25 @@ import ParticleGroup from './ParticleGroup';
 
 export default class Field extends ParticleGroup {
     
-    constructor(canvas, x, y, life) {
-        super(canvas, x, y, life);
+    constructor(canvas, x, y, count) {
+        super(canvas, x, y, count);
         this.particles = [];
 
-        for (let i = 0; i < this.life; i++) {
-            let x = Math.random() * this.canvas.width,
+        // spawn particles in random positions on the canvas
+        for (let i = 0; i < this.count; i++) {
+            const x = Math.random() * this.canvas.width,
                 y = Math.random() * this.canvas.height;
 
-            this.particles.push(this.spawn(x, y, 1));
+            this.particles.push(this.spawnParticles(x, y, 1));
         }
     }
 
     field(particle) {
-        let s = particle.speed;
         particle.angle = particle.angle + Math.random() * 10 - 5;
-        particle.x = particle.x + s * Math.cos(particle.angle * Math.PI / 180);
-        particle.y = particle.y + s * Math.sin(particle.angle * Math.PI / 180);
-        particle.age = particle.age + 1 / particle.life;
+        particle.x = particle.x + particle.speed * Math.cos(particle.angle * Math.PI / 180);
+        particle.y = particle.y + particle.speed * Math.sin(particle.angle * Math.PI / 180);
         particle.overflow();
+        particle.draw();
     }
 
     render() {
@@ -29,7 +29,6 @@ export default class Field extends ParticleGroup {
 
         for (let i = 0; i < particles.length; i++) {
             const p = particles[i];
-            p.draw();
             this.field(p);
         }
     }

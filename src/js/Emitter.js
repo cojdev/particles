@@ -2,8 +2,8 @@ import ParticleGroup from './ParticleGroup';
 
 // Particle Emitter
 export default class Emitter extends ParticleGroup {
-    constructor(canvas, x, y, life, mouse = false, dia) {
-        super(canvas, x, y, life);
+    constructor(canvas, x, y, count, mouse = false, dia) {
+        super(canvas, x, y, count);
 
         this.mouse = mouse;
 
@@ -16,15 +16,31 @@ export default class Emitter extends ParticleGroup {
         });
     }
 
+    emit(particle) {
+        const s = particle.speed * 2;
+        // make the movement jittery
+        particle.angle = particle.angle + Math.random() * 10 - 5;
+
+        particle.x = particle.x + s * Math.cos(particle.angle * Math.PI / 180);
+        particle.y = particle.y + s * Math.sin(particle.angle * Math.PI / 180);
+
+
+        particle.age = particle.age + 1 / this.count;
+
+        particle.overflow();
+        particle.shrink();
+        particle.draw();
+    }
+
     render() {
         let particles = this.particles;
         let mul = 1;
 
         for (let i = 0; i < mul; i++) {
-            particles.push(this.spawn(this.x, this.y, 1));
+            particles.push(this.spawnParticles(this.x, this.y, 1));
         }
         
-        if (particles.length > this.life * mul) {
+        if (particles.length > this.count * mul) {
             for (let i = 0; i < mul; i++) {
                 particles.shift();
             }
@@ -32,9 +48,7 @@ export default class Emitter extends ParticleGroup {
 
         for (let i = 0; i < particles.length; i++) {
             const p = particles[i];
-            p.draw();
-            p.emit(this.life);
-            p.shrink();
+            this.emit(p);
         }
     }
 }

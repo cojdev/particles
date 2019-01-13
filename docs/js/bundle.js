@@ -180,7 +180,7 @@ var Emitter =
 function (_ParticleGroup) {
   _inherits(Emitter, _ParticleGroup);
 
-  function Emitter(canvas, x, y, life) {
+  function Emitter(canvas, x, y, count) {
     var _this;
 
     var mouse = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : false;
@@ -188,7 +188,7 @@ function (_ParticleGroup) {
 
     _classCallCheck(this, Emitter);
 
-    _this = _possibleConstructorReturn(this, _getPrototypeOf(Emitter).call(this, canvas, x, y, life));
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(Emitter).call(this, canvas, x, y, count));
     _this.mouse = mouse;
     _this.particles = [];
     _this.dia = dia || false;
@@ -203,16 +203,29 @@ function (_ParticleGroup) {
   }
 
   _createClass(Emitter, [{
+    key: "emit",
+    value: function emit(particle) {
+      var s = particle.speed * 2; // make the movement jittery
+
+      particle.angle = particle.angle + Math.random() * 10 - 5;
+      particle.x = particle.x + s * Math.cos(particle.angle * Math.PI / 180);
+      particle.y = particle.y + s * Math.sin(particle.angle * Math.PI / 180);
+      particle.age = particle.age + 1 / this.count;
+      particle.overflow();
+      particle.shrink();
+      particle.draw();
+    }
+  }, {
     key: "render",
     value: function render() {
       var particles = this.particles;
       var mul = 1;
 
       for (var i = 0; i < mul; i++) {
-        particles.push(this.spawn(this.x, this.y, 1));
+        particles.push(this.spawnParticles(this.x, this.y, 1));
       }
 
-      if (particles.length > this.life * mul) {
+      if (particles.length > this.count * mul) {
         for (var _i = 0; _i < mul; _i++) {
           particles.shift();
         }
@@ -220,9 +233,7 @@ function (_ParticleGroup) {
 
       for (var _i2 = 0; _i2 < particles.length; _i2++) {
         var p = particles[_i2];
-        p.draw();
-        p.emit(this.life);
-        p.shrink();
+        this.emit(p);
       }
     }
   }]);
@@ -270,19 +281,19 @@ var Field =
 function (_ParticleGroup) {
   _inherits(Field, _ParticleGroup);
 
-  function Field(canvas, x, y, life) {
+  function Field(canvas, x, y, count) {
     var _this;
 
     _classCallCheck(this, Field);
 
-    _this = _possibleConstructorReturn(this, _getPrototypeOf(Field).call(this, canvas, x, y, life));
-    _this.particles = [];
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(Field).call(this, canvas, x, y, count));
+    _this.particles = []; // spawn particles in random positions on the canvas
 
-    for (var i = 0; i < _this.life; i++) {
+    for (var i = 0; i < _this.count; i++) {
       var _x = Math.random() * _this.canvas.width,
           _y = Math.random() * _this.canvas.height;
 
-      _this.particles.push(_this.spawn(_x, _y, 1));
+      _this.particles.push(_this.spawnParticles(_x, _y, 1));
     }
 
     return _this;
@@ -291,12 +302,11 @@ function (_ParticleGroup) {
   _createClass(Field, [{
     key: "field",
     value: function field(particle) {
-      var s = particle.speed;
       particle.angle = particle.angle + Math.random() * 10 - 5;
-      particle.x = particle.x + s * Math.cos(particle.angle * Math.PI / 180);
-      particle.y = particle.y + s * Math.sin(particle.angle * Math.PI / 180);
-      particle.age = particle.age + 1 / particle.life;
+      particle.x = particle.x + particle.speed * Math.cos(particle.angle * Math.PI / 180);
+      particle.y = particle.y + particle.speed * Math.sin(particle.angle * Math.PI / 180);
       particle.overflow();
+      particle.draw();
     }
   }, {
     key: "render",
@@ -305,7 +315,6 @@ function (_ParticleGroup) {
 
       for (var i = 0; i < particles.length; i++) {
         var p = particles[i];
-        p.draw();
         this.field(p);
       }
     }
@@ -337,6 +346,13 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 var Particle =
 /*#__PURE__*/
 function () {
+  /**
+   * particle class
+   * @param {CanvasElement} canvas the canvas
+   * @param {number} x x position
+   * @param {number} y y position
+   * @param {number} diameter particle diameter
+   */
   function Particle(canvas, x, y, diameter) {
     _classCallCheck(this, Particle);
 
@@ -350,7 +366,8 @@ function () {
     this.vx = 0;
     this.vy = 0;
     this.speed = Math.random() * .2 + .5;
-    this.angle = Math.random() * 360;
+    this.angle = Math.random() * 360; // equals 1 at the end of life
+
     this.age = 0;
     var hue = Math.floor(Math.random() * 360);
     this.fill = 'hsl(' + hue + ', 95%, 70%)';
@@ -358,16 +375,6 @@ function () {
   }
 
   _createClass(Particle, [{
-    key: "emit",
-    value: function emit(life) {
-      var s = this.speed * 2;
-      this.angle = this.angle + Math.random() * 10 - 5;
-      this.x += s * Math.cos(this.angle * Math.PI / 180);
-      this.y += s * Math.sin(this.angle * Math.PI / 180);
-      this.age += 1 / life;
-      this.overflow();
-    }
-  }, {
     key: "overflow",
     value: function overflow() {
       var top = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
@@ -392,6 +399,7 @@ function () {
           y = this.y,
           diameter = this.diameter,
           fill = this.fill;
+      diameter = diameter < 0 ? 0 : diameter;
       ctx.beginPath();
       ctx.fillStyle = fill;
       ctx.strokeStyle = fill;
@@ -436,12 +444,12 @@ function () {
    * @param {CanvasElement} canvas the canvas to be rendered on
    * @param {number} x x position
    * @param {number} y y position
-   * @param {number} life lifespan
+   * @param {number} count max number of particles in group
    */
   function ParticleGroup(canvas) {
     var x = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
     var y = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
-    var life = arguments.length > 3 ? arguments[3] : undefined;
+    var count = arguments.length > 3 ? arguments[3] : undefined;
 
     _classCallCheck(this, ParticleGroup);
 
@@ -449,7 +457,7 @@ function () {
     this.ctx = this.canvas.getContext('2d');
     this.x = x;
     this.y = y;
-    this.life = life;
+    this.count = count;
     this.mouse = {
       x: 0,
       y: 0
@@ -470,6 +478,11 @@ function () {
         y: this.y
       };
     }
+    /**
+     * set mouse values
+     * @param {MouseEvent} e mouse event
+     */
+
   }, {
     key: "setMouse",
     value: function setMouse(e) {
@@ -479,6 +492,10 @@ function () {
         y: e.clientY - rect.top
       };
     }
+    /**
+     * return the mouse position relative to the canvas
+     */
+
   }, {
     key: "getMouse",
     value: function getMouse() {
@@ -487,23 +504,31 @@ function () {
         y: this.mouse.y
       };
     }
-  }, {
-    key: "spawn",
-    value: function spawn(x, y, amount, dia) {
-      var arr = [];
-      dia = dia || false;
-      amount = amount || 1;
+    /**
+     * generate a number of particles
+     * @param {number} x x position
+     * @param {number} y y position
+     * @param {number} count number of particles to spawn
+     * @param {number} diameter override particle diameter
+     */
 
-      if (amount > 1) {
-        for (var i = 0; i < amount; i++) {
-          if (dia) {
-            arr.push(new _Particle__WEBPACK_IMPORTED_MODULE_0__["default"](this.canvas, x, y, dia));
+  }, {
+    key: "spawnParticles",
+    value: function spawnParticles(x, y) {
+      var count = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
+      var diameter = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
+      var arr = [];
+
+      if (count > 1) {
+        for (var i = 0; i < count; i++) {
+          if (diameter) {
+            arr.push(new _Particle__WEBPACK_IMPORTED_MODULE_0__["default"](this.canvas, x, y, diameter));
           } else {
             arr.push(new _Particle__WEBPACK_IMPORTED_MODULE_0__["default"](this.canvas, x, y));
           }
         }
       } else {
-        arr = new _Particle__WEBPACK_IMPORTED_MODULE_0__["default"](this.canvas, x, y, dia);
+        arr = new _Particle__WEBPACK_IMPORTED_MODULE_0__["default"](this.canvas, x, y, diameter);
       }
 
       return arr;
