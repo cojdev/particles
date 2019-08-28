@@ -7,12 +7,15 @@ export default class Canvas {
         this.element.height = height;
         this.ctx = this.element.getContext('2d');
     }
+    
+    clear() {
+        this.ctx.clearRect(0, 0, this.element.width, this.element.height);
+    }
 
     animate(callback) {
-        this.ctx.clearRect(0, 0, this.element.width, this.element.height);
+        this.clear();
         callback();
-    
-        requestAnimationFrame(this.animate.bind(this, callback));
+        window.requestAnimationFrame(this.animate.bind(this, callback));
     }
 
     //Update element size to fill window
